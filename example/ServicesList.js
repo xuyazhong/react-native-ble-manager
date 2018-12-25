@@ -195,7 +195,6 @@ export default class ServicesList extends Component {
 
   
   render() {
-    var buffData = new Buffer('0x00110011', 'hex');
     const list = Array.from(this.state.peripherals.values());
     const dataSource = ds.cloneWithRows(list);
 
