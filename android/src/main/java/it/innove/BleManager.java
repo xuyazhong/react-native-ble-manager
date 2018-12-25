@@ -281,7 +281,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	@ReactMethod
 	public void write(String deviceUUID, String serviceUUID, String characteristicUUID, ReadableArray message, Integer maxByteSize, Callback callback) {
-		Log.d(LOG_TAG, "Write to: " + deviceUUID);
+		Log.e(LOG_TAG, "Write to: " + deviceUUID);
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null) {
@@ -289,7 +289,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			for (int i = 0; i < message.size(); i++) {
 				decoded[i] = new Integer(message.getInt(i)).byteValue();
 			}
-			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+			Log.e(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
 			peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), decoded, maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
 		} else
 			callback.invoke("Peripheral not found");
@@ -297,7 +297,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	@ReactMethod
 	public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID, ReadableArray message, Integer maxByteSize, Integer queueSleepTime, Callback callback) {
-		Log.d(LOG_TAG, "Write without response to: " + deviceUUID);
+		Log.e(LOG_TAG, "Write without response to: " + deviceUUID);
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null) {
@@ -305,7 +305,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			for (int i = 0; i < message.size(); i++) {
 				decoded[i] = new Integer(message.getInt(i)).byteValue();
 			}
-			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+			Log.e(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
 			peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), decoded, maxByteSize, queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 		} else
 			callback.invoke("Peripheral not found");

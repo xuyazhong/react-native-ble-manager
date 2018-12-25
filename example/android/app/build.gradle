@@ -126,6 +126,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-ble-manager')
     api project(':react-native-ble-manager')
     api fileTree(dir: "libs", include: ["*.jar"])
     api "com.android.support:appcompat-v7:26.0.1"

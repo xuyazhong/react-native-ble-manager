@@ -250,12 +250,13 @@ export default class ServicesList extends Component {
                     <TouchableHighlight onPress={() => {
                       console.log('item =>[', item.properties , ']', item)
                       // Notify、Read、Write、WriteWithoutResponse
-                      // let dataValue = "Hello"
-                      let dataValue = "CHANNEL=ios&company=beecredit&DEVICENUMBER=0001&timestamp=1530031691&TOKEN=1234&sign=661d3dfd2f2d6cec0abadd8468458e15"
+                      let dataValue = "Hello"
+                      // let dataValue = "CHANNEL=ios&company=beecredit&DEVICENUMBER=0001&timestamp=1530031691&TOKEN=1234&sign=661d3dfd2f2d6cec0abadd8468458e15"
                       // let data = stringToBytes(dataValue)
                       console.log('write origin:', dataValue)
-                      console.log('write new:', data)
                       let data = stringToBytes(dataValue)
+                      console.log('write new:', data)
+                        console.log('type =>', typeof (data))
                       console.log('properties type =>', typeof(item.properties))
                       var propertieArray = item.properties
                       if (Platform.OS === 'android') {
