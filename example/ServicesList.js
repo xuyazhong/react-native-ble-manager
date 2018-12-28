@@ -1,74 +1,48 @@
 import React, { Component } from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-  TouchableHighlight,
-  TouchableOpacity,
-  NativeAppEventEmitter,
-  Button,
-  NativeEventEmitter,
-  NativeModules,
-  Platform,
-  PermissionsAndroid,
-  ListView,
-  ScrollView,
-  AppState,
-  Dimensions,
-} from 'react-native';
-import BleManager from 'react-native-ble-manager';
-import { stringToBytes } from 'convert-string'
+import { AppRegistry, StyleSheet, Text, View, TouchableHighlight, TouchableOpacity, NativeAppEventEmitter, Button, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, ListView, ScrollView, AppState, Dimensions } from 'react-native';
+import BLEKit from './BLEKit';
 
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export default class ServicesList extends Component {
   constructor(){
     super()
 
     this.state = {
-      scanning:false,
       peripherals: new Map(),
-      appState: '',
       selectedId: '',
       selectedName: '',
-      peripheralArray: [],
-      dataArray: ds.cloneWithRows([])
+      selectedCharacteristic: null
     }
-
-    this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
-    this.handleStopScan = this.handleStopScan.bind(this);
-    this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
-    this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
-    this.handleAppStateChange = this.handleAppStateChange.bind(this);
-  }
-
-  actionScan = () => {
-    this.startScan()
-  }
-
-  actionDiscount = () => {
-    BleManager.disconnect(this.state.selectedId);
-    this.setState({
-      selectedId: '',
-      selectedName: ''
-    })
   }
 
   componentDidMount() {
 
-    AppState.addEventListener('change', this.handleAppStateChange);
+    BLEKit.ShareInstance().DiscoverPeripheralCallback((peripheral) => {
+      console.log("###receive =>", peripheral);
+        var oldPeripherals = this.state.peripherals;
+        if (!oldPeripherals.has(peripheral.id)){
+            console.log('Got ble peripheral', peripheral);
+            oldPeripherals.set(peripheral.id, peripheral);
+            this.setState({
+                peripherals: oldPeripherals
+            })
+        } else {
 
-    BleManager.start({showAlert: false});
+        }
+    });
 
-    this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
-    this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
-    this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
-    this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
+    BLEKit.ShareInstance().NotifyForCharacteristicCallback((result) => {
+      console.log('订阅收到数据 =>', result);
+      console.log('取消订阅');
+        // actionStopNotification
+        BLEKit.ShareInstance().actionStopNotification(this.state.selectedId, this.state.selectedCharacteristic).then((succ) => {
+          console.log(succ)
+        }, (fail) => {
+          console.log(fail)
+        })
+    });
 
     if (Platform.OS === 'android' && Platform.Version >= 23) {
         PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
@@ -85,114 +59,53 @@ export default class ServicesList extends Component {
             }
       });
     }
-
-  }
-
-  handleAppStateChange(nextAppState) {
-    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-      console.log('App has come to the foreground!')
-      BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
-        console.log('Connected peripherals: ' + peripheralsArray.length);
-      });
-    }
-    this.setState({appState: nextAppState});
   }
 
   componentWillUnmount() {
-    this.handlerDiscover.remove();
-    this.handlerStop.remove();
-    this.handlerDisconnect.remove();
-    this.handlerUpdate.remove();
+    BLEKit.ShareInstance().handleRemove()
   }
 
-  handleDisconnectedPeripheral(data) {
-    let peripherals = this.state.peripherals;
-    let peripheral = peripherals.get(data.peripheral);
-    if (peripheral) {
-      peripheral.connected = false;
-      peripherals.set(peripheral.id, peripheral);
-      this.setState({peripherals});
-    }
-    console.log('Disconnected from ' + data.peripheral);
-  }
-
-  handleUpdateValueForCharacteristic(data) {
-    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
-  }
-
-  handleStopScan() {
-    console.log('Scan is stopped');
-    this.setState({ scanning: false });
-  }
-
-  startScan() {
-    if (!this.state.scanning) {
-      this.setState({peripherals: new Map()});
-      BleManager.scan([], 3, true).then((results) => {
-        console.log('Scanning...');
-        this.setState({scanning:true});
-      });
-    }
-  }
-
-  retrieveConnected(){
-    BleManager.getConnectedPeripherals([]).then((results) => {
-      if (results.length == 0) {
-        console.log('No connected peripherals')
-      }
-      console.log(results);
-      var peripherals = this.state.peripherals;
-      for (var i = 0; i < results.length; i++) {
-        var peripheral = results[i];
-        peripheral.connected = true;
-        peripherals.set(peripheral.id, peripheral);
-        this.setState({ peripherals });
-      }
+  //连接蓝牙
+  connect(peripheral) {
+    BLEKit.ShareInstance().actionConnect(peripheral).then((success) => {
+      console.log('success =>', success)
+        this.setState({
+            selectedId: peripheral.id,
+            selectedName: peripheral.name,
+            selectedCharacteristic: success
+        })
+    }, (failure) => {
+      console.log('failure =>', failure)
     });
   }
 
-  handleDiscoverPeripheral(peripheral){
-    var peripherals = this.state.peripherals;
-    if (!peripherals.has(peripheral.id)){
-      console.log('Got ble peripheral', peripheral);
-      peripherals.set(peripheral.id, peripheral);
-      this.setState({ peripherals })
-    }
+  // 写数据
+  actionWrite() {
+    let data = "HelloWorld";
+    BLEKit.ShareInstance().actionWrite(data, this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
+        console.log("--------写入成功");
+    }, (failure) => {
+        console.log("--------写入失败");
+    })
   }
 
-  test(peripheral) {
-    if (peripheral){
-      if (peripheral.connected){
-        
-      } else {
-        BleManager.connect(peripheral.id).then(() => {
-          let peripherals = this.state.peripherals;
-          let p = peripherals.get(peripheral.id);
-          if (p) {
-            p.connected = true;
-            peripherals.set(peripheral.id, p);
-            this.setState({peripherals});
-            this.setState({
-              selectedId: peripheral.id,
-              selectedName: peripheral.name
-            })
-          }
-          console.log('Connected to ' + peripheral.id);
-          BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
-            console.log('peripheralInfo =>', peripheralInfo);
-            console.log('characteristics =>', peripheralInfo.characteristics);
-            this.setState({
-              peripheralArray: peripheralInfo.characteristics,
-              dataArray: ds.cloneWithRows(peripheralInfo.characteristics)
-            })
-          })
-        }).catch((error) => {
-          console.log('Connection error', error);
-        });
-      }
-    }
+  // 读取数据
+  actionRead() {
+      BLEKit.ShareInstance().actionRead(this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
+          console.log("--------写入成功");
+      }, (failure) => {
+          console.log("--------写入失败");
+      })
   }
 
+  // 订阅
+  actionSubscription () {
+      BLEKit.ShareInstance().actionStartNotification(this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
+        console.log("--------订阅成功");
+      }, (failure) => {
+        console.log("--------订阅失败");
+      })
+  }
   
   render() {
     const list = Array.from(this.state.peripherals.values());
@@ -202,14 +115,22 @@ export default class ServicesList extends Component {
       <View style={styles.container}>
         <View style={styles.navigationStyle}>
           <View style={[styles.navigationItem]}>
-            <TouchableOpacity onPress={this.actionScan}>
+            <TouchableOpacity onPress={() => {
+                this.setState({peripherals: new Map()});
+                BLEKit.ShareInstance().startScan()
+            }}>
               <View style={[styles.BtnStyle]}>
                 <Text>scan</Text>
               </View>
             </TouchableOpacity>
           </View>
           <View style={[styles.navigationItem]}>
-            <TouchableOpacity onPress={this.actionDiscount}>
+            <TouchableOpacity onPress={() => {
+              BLEKit.ShareInstance().actionDiscount(this.state.selectedId)
+                this.setState({
+                    selectedId: ''
+                })
+            }}>
               <View style={[styles.BtnStyle]}>
                 <Text>discount</Text>
               </View>
@@ -229,7 +150,7 @@ export default class ServicesList extends Component {
               renderRow={(item) => {
                 const color = item.connected ? 'green' : '#fff';
                 return (
-                  <TouchableHighlight onPress={() => this.test(item) }>
+                  <TouchableHighlight onPress={() => this.connect(item) }>
                     <View style={[styles.row, {backgroundColor: color}]}>
                       <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>{item.name}</Text>
                       <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>{item.id}</Text>
@@ -241,56 +162,21 @@ export default class ServicesList extends Component {
             <View style={[styles.row, {backgroundColor: '#fff'}]}>
               <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>selected Id:{this.state.selectedId}</Text>
               <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>selected Name{this.state.selectedName}</Text>
-              <ListView 
-                enableEmptySections={true}
-                dataSource={this.state.dataArray}
-                renderRow={(item) => {
-                  // const color = item.connected ? 'green' : '#fff';
-                  return (
-                    <TouchableHighlight onPress={() => {
-                      console.log('item =>[', item.properties , ']', item)
-                      // Notify、Read、Write、WriteWithoutResponse
-                      let dataValue = "Hello"
-                      // let dataValue = "CHANNEL=ios&company=beecredit&DEVICENUMBER=0001&timestamp=1530031691&TOKEN=1234&sign=661d3dfd2f2d6cec0abadd8468458e15"
-                      // let data = stringToBytes(dataValue)
-                      console.log('write origin:', dataValue)
-                      let data = stringToBytes(dataValue)
-                      console.log('write new:', data)
-                        console.log('type =>', typeof (data))
-                      console.log('properties type =>', typeof(item.properties))
-                      var propertieArray = item.properties
-                      if (Platform.OS === 'android') {
-                        console.log('android')
-                        propertieArray = Object.values(item.properties)
-                        // propertieArray = item.properties.()
-                      }
-                      console.log('propertieArray =>', propertieArray)
-                      if (propertieArray.includes('Write')) {
-                        console.log('wirte')
-                        BleManager.write(this.state.selectedId, item.service, item.characteristic, data).then((success) => {
-                          console.log('写入成功 =>', success)
-                        }, (failure) => {
-                          console.log('写入失败 =>', failure)
-                        })
-                      }
-                      if (propertieArray.includes('WriteWithoutResponse')) {
-                        console.log('WriteWithoutResponse')
-                        BleManager.writeWithoutResponse(this.state.selectedId, item.service, item.characteristic, data).then((success) => {
-                          console.log('写入成功 =>', success)
-                        }, (failure) => {
-                          console.log('写入失败 =>', failure)
-                        })
-                      }
-                    }}>
-                      <View style={[styles.row, {backgroundColor: '#fff'}]}>
-                        <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>characteristic: {item.characteristic}</Text>
-                        <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>service: {item.service}</Text>
-                        <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>properties: {Object.values(item.properties)}</Text>
-                      </View>
-                    </TouchableHighlight>
-                  );
-                }}
-              />
+              <TouchableHighlight onPress={() => {
+                this.actionWrite()
+              }}>
+                <View style={[styles.row, {backgroundColor: '#fff'}]}>
+                  <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>写入</Text>
+                  {
+                    this.state.selectedCharacteristic &&
+                        <View>
+                          <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>characteristic: {this.state.selectedCharacteristic.characteristic}</Text>
+                          <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>service: {this.state.selectedCharacteristic.service}</Text>
+                          <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>properties: {Object.values(this.state.selectedCharacteristic.properties)}</Text>
+                        </View>
+                  }
+                </View>
+              </TouchableHighlight>
             </View>
           }
         </ScrollView>
