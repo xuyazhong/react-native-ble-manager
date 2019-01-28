@@ -2,14 +2,19 @@
   "name": "react-native-ble-manager",
   "version": "6.5.5",
   "description": "A BLE module for react native.",
-  "main": "BleManager",
+  "main": "./BLEKit.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/innoveit/react-native-ble-manager.git"
+    "url": "https://github.com/xuyazhong/react-native-ble-manager.git"
   },
-  "bugs": {
-    "url": "https://github.com/innoveit/react-native-ble-manager/issues"
+  "dependencies": {
+    "convert-string": "^0.1.0"
   },
+  "peerDependencies": {
+		"prop-types": "^15.6.0",
+		"react": "^15.4.2",
+		"react-native": "^0.41.2"
+	},
   "keywords": [
     "react-native",
     "android",
@@ -20,11 +25,7 @@
   ],
   "license": "Apache-2.0",
   "author": {
-    "name": "Innove",
-    "url": "https://github.com/innoveit"
-  },
-  "scripts": {
-    "version": "git add -A",
-    "postversion": "git push && git push --tags"
+    "name": "xyz",
+    "url": "https://github.com/xuyazhong"
   }
 }
