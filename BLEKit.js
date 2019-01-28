@@ -115,8 +115,10 @@ class BLEKit {
             BleManager.connect(peripheralId).then(() => {
                 console.log('Connected to ' + peripheralId);
                 BleManager.retrieveServices(peripheralId).then((peripheralInfo) => {
-                    console.log('succ =>', peripheralInfo)
+                    console.log('retrieveServices =>', peripheralInfo)
                     success(peripheralInfo)
+                }, (reject) => {
+                    failure("retrieveServices error" + reject)
                 })
             }).catch((error) => {
                 failure('Connection error' + error)
