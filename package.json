@@ -11,10 +11,10 @@
     "convert-string": "^0.1.0"
   },
   "peerDependencies": {
-		"prop-types": "^15.6.0",
-		"react": "^15.4.2",
-		"react-native": "^0.41.2"
-	},
+    "prop-types": "^15.6.0",
+    "react": "^15.4.2",
+    "react-native": "^0.41.2"
+  },
   "keywords": [
     "react-native",
     "android",
