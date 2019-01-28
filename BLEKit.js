@@ -1,4 +1,5 @@
 'use strict';
+import React, { Component, } from 'react';
 import { NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, ListView, ScrollView, AppState, Dimensions } from 'react-native';
 import BleManager from './BleManager';
 import { stringToBytes, bytesToString } from 'convert-string'
@@ -6,7 +7,7 @@ import { stringToBytes, bytesToString } from 'convert-string'
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-class BLEKit {
+class BLEKit extends Component {
     constructor() {
         if (!BLEKit.instance) {
             BLEKit.instance = this;
