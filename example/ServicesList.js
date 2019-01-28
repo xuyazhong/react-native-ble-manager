@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { AppRegistry, StyleSheet, Text, View, TouchableHighlight, TouchableOpacity, NativeAppEventEmitter, Button, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, ListView, ScrollView, AppState, Dimensions } from 'react-native';
-import BLEKit from './BLEKit';
-
+import {StyleSheet, Text, View, TouchableHighlight, TouchableOpacity, Alert, Button, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, ListView, ScrollView, AppState, Dimensions } from 'react-native';
+import BLEKit from 'react-native-ble-manager';
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+const CharacterUUID = "2A06"; //写入
 
 export default class ServicesList extends Component {
   constructor(){
@@ -19,7 +19,7 @@ export default class ServicesList extends Component {
 
   componentDidMount() {
 
-    BLEKit.ShareInstance().DiscoverPeripheralCallback((peripheral) => {
+    BLEKit.ble_DiscoverPeripheralCallback((peripheral) => {
       console.log("###receive =>", peripheral);
         var oldPeripherals = this.state.peripherals;
         if (!oldPeripherals.has(peripheral.id)){
@@ -33,46 +33,40 @@ export default class ServicesList extends Component {
         }
     });
 
-    BLEKit.ShareInstance().NotifyForCharacteristicCallback((result) => {
+    BLEKit.ble_NotifyForCharacteristicCallback((result) => {
       console.log('订阅收到数据 =>', result);
       console.log('取消订阅');
         // actionStopNotification
-        BLEKit.ShareInstance().actionStopNotification(this.state.selectedId, this.state.selectedCharacteristic).then((succ) => {
+        BLEKit.actionStopNotification(this.state.selectedId, this.state.selectedCharacteristic).then((succ) => {
           console.log(succ)
         }, (fail) => {
           console.log(fail)
         })
     });
 
-    if (Platform.OS === 'android' && Platform.Version >= 23) {
-        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-            if (result) {
-              console.log("Permission is OK");
-            } else {
-              PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-                if (result) {
-                  console.log("User accept");
-                } else {
-                  console.log("User refuse");
-                }
-              });
-            }
-      });
-    }
   }
 
   componentWillUnmount() {
-    BLEKit.ShareInstance().handleRemove()
+    BLEKit.handleRemove()
   }
 
   //连接蓝牙
   connect(peripheral) {
-    BLEKit.ShareInstance().actionConnect(peripheral).then((success) => {
-      console.log('success =>', success)
-        this.setState({
-            selectedId: peripheral.id,
-            selectedName: peripheral.name,
-            selectedCharacteristic: success
+      Alert.alert("ble id =>" + peripheral.id)
+      BLEKit.ble_connect(peripheral.id).then((peripheralInfo) => {
+      console.log("peripheralInfo =>", peripheralInfo)
+        peripheralInfo.characteristics.map((item) => {
+            console.log("item =>", item)
+            console.log("CharacterUUID =>", CharacterUUID)
+            console.log("characteristic=>", item.characteristic)
+            if (item.characteristic.toUpperCase() === CharacterUUID) {
+                // characteristic = item;
+                this.setState({
+                    selectedId: peripheral.id,
+                    selectedName: peripheral.name,
+                    selectedCharacteristic: item
+                })
+            }
         })
     }, (failure) => {
       console.log('failure =>', failure)
@@ -81,17 +75,20 @@ export default class ServicesList extends Component {
 
   // 写数据
   actionWrite() {
-    let data = "HelloWorld";
-    BLEKit.ShareInstance().actionWrite(data, this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
+
+    let data = "HelloWrold";
+
+    BLEKit.ble_write(data, this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
         console.log("--------写入成功");
     }, (failure) => {
+        Alert.alert("写入失败" + failure)
         console.log("--------写入失败");
     })
   }
 
   // 读取数据
   actionRead() {
-      BLEKit.ShareInstance().actionRead(this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
+      BLEKit.ble_read(this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
           console.log("--------写入成功");
       }, (failure) => {
           console.log("--------写入失败");
@@ -100,7 +97,7 @@ export default class ServicesList extends Component {
 
   // 订阅
   actionSubscription () {
-      BLEKit.ShareInstance().actionStartNotification(this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
+      BLEKit.ble_startNotification(this.state.selectedId, this.state.selectedCharacteristic).then((success) => {
         console.log("--------订阅成功");
       }, (failure) => {
         console.log("--------订阅失败");
@@ -117,7 +114,7 @@ export default class ServicesList extends Component {
           <View style={[styles.navigationItem]}>
             <TouchableOpacity onPress={() => {
                 this.setState({peripherals: new Map()});
-                BLEKit.ShareInstance().startScan()
+                BLEKit.ble_scan()
             }}>
               <View style={[styles.BtnStyle]}>
                 <Text>scan</Text>
@@ -126,7 +123,7 @@ export default class ServicesList extends Component {
           </View>
           <View style={[styles.navigationItem]}>
             <TouchableOpacity onPress={() => {
-              BLEKit.ShareInstance().actionDiscount(this.state.selectedId)
+              BLEKit.actionDiscount(this.state.selectedId)
                 this.setState({
                     selectedId: ''
                 })
