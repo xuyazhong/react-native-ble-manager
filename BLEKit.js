@@ -116,7 +116,7 @@ class BLEKit {
                 console.log('Connected to ' + peripheralId);
                 BleManager.retrieveServices(peripheralId).then((peripheralInfo) => {
                     console.log('succ =>', peripheralInfo)
-                    peripheralInfo.characteristics ? success(peripheralInfo.characteristics) : failure('no characteristics')
+                    success(peripheralInfo)
                 })
             }).catch((error) => {
                 failure('Connection error' + error)
