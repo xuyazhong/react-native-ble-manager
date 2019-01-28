@@ -9,6 +9,7 @@ const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 class BLEKit extends Component {
     constructor() {
+        super()
         if (!BLEKit.instance) {
             BLEKit.instance = this;
             //绑定
@@ -30,9 +31,9 @@ class BLEKit extends Component {
             let bleCallback = (result) => {}
             this.state = {
                 // 蓝牙设备列表回调
-                DiscoverCallback: bleCallback(),
+                DiscoverCallback: bleCallback,
                 // 通知回调
-                NotifyCallback: bleCallback()
+                NotifyCallback: bleCallback
             }
         }
         return BLEKit.instance;
