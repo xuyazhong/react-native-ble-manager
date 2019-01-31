@@ -1,5 +1,4 @@
 'use strict';
-import React, { Component, } from 'react';
 import { NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, ListView, ScrollView, AppState, Dimensions } from 'react-native';
 import BleManager from './BleManager';
 import { stringToBytes, bytesToString } from 'convert-string'
@@ -7,9 +6,8 @@ import { stringToBytes, bytesToString } from 'convert-string'
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-class BLEKit extends Component {
+class BLEKit {
     constructor() {
-        super()
         if (!BLEKit.instance) {
             BLEKit.instance = this;
             //绑定
@@ -18,22 +16,31 @@ class BLEKit extends Component {
             this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
             this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
             this.handleAppStateChange = this.handleAppStateChange.bind(this);
+            // this.ble_State = this.ble_State.bind(this);
 
             BleManager.start({showAlert: false});
 
             //监听
-            // AppState.addEventListener('change', this.handleAppStateChange);
+            AppState.addEventListener('change', this.handleAppStateChange);
             this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
             this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
             this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
             this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
+            this.hanlderUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', (result) => {
+                console.log("BleManagerDidUpdateState =>", result);
+            });
+
 
             let bleCallback = (result) => {}
             this.state = {
                 // 蓝牙设备列表回调
-                DiscoverCallback: bleCallback,
+                DiscoverCallback: bleCallback(),
                 // 通知回调
-                NotifyCallback: bleCallback
+                NotifyCallback: bleCallback(),
+                // 蓝牙状态变化
+                appStateChangeCallback: bleCallback(),
+                // 蓝牙是否开启
+                appEnableBluetooth: bleCallback()
             }
         }
         return BLEKit.instance;
@@ -41,13 +48,26 @@ class BLEKit extends Component {
 
     // 监听状态变化
     handleAppStateChange(nextAppState) {
-        if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-            console.log('App has come to the foreground!')
-            BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
-                console.log('Connected peripherals: ' + peripheralsArray.length);
-            });
-        }
-        this.setState({appState: nextAppState});
+        this.state.appStateCallback(nextAppState);
+    }
+
+    // 监听状态变化回调
+    ble_AppState(callback) {
+        this.state.appStateCallback = callback;
+    }
+
+    // 蓝牙状态
+    ble_checkState() {
+        return BleManager.checkState();
+    }
+
+    ble_State(result) {
+        return result;
+    }
+
+    // 只支持Android
+    ble_enableBluttooth() {
+        return BleManager.enableBluetooth()
     }
 
     // 监听断开连接
@@ -128,16 +148,16 @@ class BLEKit extends Component {
 
     // 写入蓝牙
     ble_writeWithoutResponse(dataValue, selectedId, selectedCharacteristic) {
-        return new Promise((success, failure) => {
+        return new Promise((success, fail) => {
             let propertieArray = this.getPropertieArray(selectedCharacteristic);
             if (propertieArray.includes('WriteWithoutResponse')) {
                 BleManager.writeWithoutResponse(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, stringToBytes(dataValue)).then((success) => {
                     success('写入成功')
                 }, (failure) => {
-                    failure('写入失败 =>' + failure)
+                    fail('写入失败 =>' + failure)
                 })
             } else {
-                failure('无权限')
+                fail('无权限')
             }
         });
     }
