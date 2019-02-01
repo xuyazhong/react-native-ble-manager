@@ -539,7 +539,7 @@
 				ORGANIZATIONNAME = Facebook;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = DCA89FKCPD;
+						DevelopmentTeam = YQZBV53B4H;
 					};
 				};
 			};
@@ -926,7 +926,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
-				DEVELOPMENT_TEAM = DCA89FKCPD;
+				DEVELOPMENT_TEAM = YQZBV53B4H;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-gesture-handler/ios/**",
@@ -942,6 +942,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.reactjs.native.example.ExampleBle1;
 				PRODUCT_NAME = ExampleBle;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -952,7 +953,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = DCA89FKCPD;
+				DEVELOPMENT_TEAM = YQZBV53B4H;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-gesture-handler/ios/**",
@@ -968,6 +969,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.reactjs.native.example.ExampleBle1;
 				PRODUCT_NAME = ExampleBle;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
