@@ -151,7 +151,7 @@ class BLEKit {
         return new Promise((success, fail) => {
             let propertieArray = this.getPropertieArray(selectedCharacteristic);
             if (propertieArray.includes('WriteWithoutResponse')) {
-                BleManager.writeWithoutResponse(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, stringToBytes(dataValue)).then((success) => {
+                BleManager.writeWithoutResponse(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, dataValue).then((success) => {
                     success('写入成功')
                 }, (failure) => {
                     fail('写入失败 =>' + failure)
@@ -170,7 +170,7 @@ class BLEKit {
         return new Promise((succ, fail) => {
             let propertieArray = this.getPropertieArray(selectedCharacteristic);
             if (propertieArray.includes('Write')) {
-                BleManager.write(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, stringToBytes(dataValue)).then((success) => {
+                BleManager.write(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, dataValue).then((success) => {
                     succ('写入成功')
                 }, (failure) => {
                     fail('写入失败 =>' + failure)
