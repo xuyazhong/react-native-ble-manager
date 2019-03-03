@@ -11,6 +11,7 @@
 		"react": "^16.4.1",
 		"react-mixin": "^3.0.5",
 		"react-native": "^0.56.0",
+		"react-native-prompt-android": "^0.3.4",
 		"react-native-ble-manager": "git@github.com:xuyazhong/react-native-ble-manager.git",
 		"react-timer-mixin": "^0.13.3"
 	},

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {StyleSheet, Text, View, TouchableHighlight, TouchableOpacity, Alert, Button, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, ListView, ScrollView, AppState, Dimensions } from 'react-native';
 import BLEKit from 'react-native-ble-manager';
+import prompt from 'react-native-prompt-android';
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 const readCharacterUUID = "FFF1"; // 读取
@@ -84,8 +85,38 @@ export default class ServicesList extends Component {
     });
   }
 
+  actionSend(characteristic, hasResponse) {
+      let data = ["86", "8", "16", "-6", "-16", "-4", "11", "3", "9", "88"]
+
+      if (hasResponse) {
+          this.actionWrite(data, characteristic)
+      } else {
+          this.actionWriteWithoutResponse(data, characteristic)
+      }
+      // prompt(
+      //     '请输入指令',
+      //     '请输入蓝牙指令',
+      //     [
+      //         {text: '取消', onPress: () => console.log('取消'), style: 'cancel'},
+      //         {text: '发送', onPress: (password) => {
+      //             console.log('确定' + password)
+      //             if (hasResponse) {
+      //                 this.actionWrite(password, characteristic)
+      //             } else {
+      //                 this.actionWriteWithoutResponse(password, characteristic)
+      //             }
+      //         }},
+      //     ],
+      //     {
+      //         cancelable: false,
+      //         defaultValue: 'WWW',
+      //         placeholder: '请输入蓝牙指令'
+      //     }
+      // );
+  }
+
   // 写数据
-  actionWrite(characteristic) {
+  actionWrite(data, characteristic) {
     // BLEKit.actionRetrieveConnected().then((succ)=> {
     //     console.log("取回成功 =>", succ)
     // }, (fail) => {
@@ -93,18 +124,18 @@ export default class ServicesList extends Component {
     // })
 
     // let data = "WXY";
-    let data = "56F1FC0BFC0BFC0AA658";
+    // let data = "56F1FC0BFC0BFC0AA658";
 
     BLEKit.ble_write(data, this.state.selectedId, characteristic).then((success) => {
-        console.log("--------写入成功");
+        console.log("actionWrite--------写入成功");
     }, (failure) => {
-        Alert.alert("写入失败" + failure)
-        console.log("--------写入失败");
+        Alert.alert("actionWrite写入失败" + failure)
+        console.log("actionWrite--------写入失败");
     })
   }
 
     // 写数据
-    actionWriteWithoutResponse(characteristic) {
+    actionWriteWithoutResponse(data, characteristic) {
         // BLEKit.actionRetrieveConnected().then((succ)=> {
         //     console.log("取回成功 =>", succ)
         // }, (fail) => {
@@ -112,14 +143,15 @@ export default class ServicesList extends Component {
         // })
 
         // let data = "WXY";
-        let data = "56F1FC0BFC0BFC0AA658";
-
+        // let data = "56F1FC0BFC0BFC0AA658";
+        //
+        // 86, 8, 16, -6, -16, -4, 11, 3, 9, 88
         BLEKit.ble_writeWithoutResponse(data, this.state.selectedId, characteristic).then((success) => {
-            console.log("--------写入成功");
+            console.log("ble_writeWithoutResponse--------写入成功");
             Alert.alert("写入成功 =>", data);
         }, (failure) => {
-            Alert.alert("写入失败" + failure)
-            console.log("--------写入失败");
+            Alert.alert("ble_writeWithoutResponse写入失败" + failure)
+            console.log("ble_writeWithoutResponse--------写入失败");
         })
     }
 
@@ -167,7 +199,7 @@ export default class ServicesList extends Component {
                           this.actionRead(characteristic)
                           break
                       case "Write":
-                          this.actionWrite(characteristic)
+                          this.actionSend(characteristic, true)
                           break
                       case "Notify":
                           if (this.state.isNotify) {
@@ -177,11 +209,11 @@ export default class ServicesList extends Component {
                           }
                           break
                       case "WriteWithoutResponse":
-                          this.actionWriteWithoutResponse(characteristic)
+                          this.actionSend(characteristic, false)
                           break
                   }
               }}>
-                  <Text style={styles.charCell}>{this.getStatus(item)}</Text>
+                  <Text style={styles.CommondCell}>{this.getStatus(item)}</Text>
               </TouchableHighlight>
           )
 
@@ -237,9 +269,9 @@ export default class ServicesList extends Component {
                 BLEKit.ble_scan()
                 if (Platform.OS === 'android') {
                     BLEKit.ble_enableBluttooth().then((succ) => {
-                        Alert.alert("ble enable")
+                        // Alert.alert("ble enable")
                     }, (fail) => {
-                        Alert.alert("ble not enable")
+                        Alert.alert("blue not enable")
                     })
                 }
                 if (Platform.OS === 'ios') {
@@ -248,7 +280,7 @@ export default class ServicesList extends Component {
 
             }}>
               <View style={[styles.BtnStyle]}>
-                <Text>scan</Text>
+                <Text>扫描</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -260,7 +292,7 @@ export default class ServicesList extends Component {
                 })
             }}>
               <View style={[styles.BtnStyle]}>
-                <Text>discount</Text>
+                <Text>断开</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -299,7 +331,6 @@ export default class ServicesList extends Component {
                             dataSource={ds.cloneWithRows(this.state.characteristicArr)}
                             renderRow={(item) => this.renderCharacterRow(item)}
                         />
-                        {this.state.isNotify && <Text>收到的数据 : {this.state.receiveString}</Text>}
                     </View>
                     }
                 </View>
@@ -344,7 +375,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   charCell: {
-      fontSize: 12,
+      fontSize: 16,
+      textAlign: 'center',
+      color: '#333333',
+      padding: 10
+  },
+  CommondCell : {
+      fontSize: 20,
       textAlign: 'center',
       color: '#333333',
       padding: 10
