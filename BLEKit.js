@@ -16,7 +16,6 @@ class BLEKit {
             this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
             this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
             this.handleAppStateChange = this.handleAppStateChange.bind(this);
-            // this.ble_State = this.ble_State.bind(this);
 
             BleManager.start({showAlert: false});
 
@@ -33,6 +32,7 @@ class BLEKit {
 
             let bleCallback = (result) => {}
             this.state = {
+                appStateCallback:  (result) => {},
                 // 蓝牙设备列表回调
                 DiscoverCallback: bleCallback(),
                 // 通知回调
@@ -47,8 +47,8 @@ class BLEKit {
     }
 
     // 监听状态变化
-    handleAppStateChange(nextAppState) {
-        this.state.appStateCallback(nextAppState);
+    handleAppStateChange = (nextAppState) => {
+        this.state.appStateCallback(nextAppState)
     }
 
     // 监听状态变化回调
