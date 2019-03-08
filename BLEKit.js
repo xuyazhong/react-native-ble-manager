@@ -16,6 +16,7 @@ class BLEKit {
             this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
             this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
             this.handleAppStateChange = this.handleAppStateChange.bind(this);
+            this.handleBleStateChange = this.handleBleStateChange.bind(this);
 
             BleManager.start({showAlert: false});
 
@@ -25,7 +26,7 @@ class BLEKit {
             this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
             this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
             this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
-            this.hanlderUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', handleBleStateChange);
+            this.hanlderUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', this.handleBleStateChange);
 
             let bleCallback = (result) => {}
             this.state = {
