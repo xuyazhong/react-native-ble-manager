@@ -25,10 +25,7 @@ class BLEKit {
             this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
             this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
             this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
-            this.hanlderUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', (result) => {
-                console.log("BleManagerDidUpdateState =>", result);
-            });
-
+            this.hanlderUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', handleBleStateChange);
 
             let bleCallback = (result) => {}
             this.state = {
@@ -40,7 +37,7 @@ class BLEKit {
                 // 蓝牙状态变化
                 appStateChangeCallback: bleCallback(),
                 // 蓝牙是否开启
-                appEnableBluetooth: bleCallback()
+                appEnableBluetooth: (result) => {},
             }
         }
         return BLEKit.instance;
@@ -56,13 +53,19 @@ class BLEKit {
         this.state.appStateCallback = callback;
     }
 
-    // 蓝牙状态
+    // 开始监听
     ble_checkState() {
         return BleManager.checkState();
     }
 
-    ble_State(result) {
-        return result;
+    // 监听 蓝牙开启/关闭状态
+    handleBleStateChange = (result) => {
+        this.state.appEnableBluetooth(result)
+    }
+
+    // 回调
+    ble_State(callback) {
+        this.state.appEnableBluetooth = callback
     }
 
     // 只支持Android
