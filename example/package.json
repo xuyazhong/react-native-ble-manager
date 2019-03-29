@@ -7,17 +7,15 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"babel-preset-react-native": "^5.0.1",
 		"react": "^16.4.1",
 		"react-mixin": "^3.0.5",
 		"react-native": "^0.56.0",
-		"react-native-prompt-android": "^0.3.4",
 		"react-native-ble-manager": "git@github.com:xuyazhong/react-native-ble-manager.git",
-		"react-timer-mixin": "^0.13.3",
-		"react-native-crc": "https://github.com/xuyazhong/react-native-crc"
+		"react-native-crc": "git@github.com:xuyazhong/react-native-crc",
+		"react-native-prompt-android": "^0.3.4",
+		"react-timer-mixin": "^0.13.3"
 	},
 	"devDependencies": {
-		"react-test-renderer": "16.6.0-alpha.8af6728",
 		"schedule": "^0.4.0"
 	}
 }
