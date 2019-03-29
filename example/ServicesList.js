@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import {StyleSheet, Text, View, TouchableHighlight, TouchableOpacity, Alert, Button, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, ListView, ScrollView, AppState, Dimensions } from 'react-native';
 import BLEKit from 'react-native-ble-manager';
 import prompt from 'react-native-prompt-android';
+import crcLib from 'react-native-crc'
+import Command from './Command'
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 const readCharacterUUID = "FFF1"; // 读取
@@ -86,33 +88,28 @@ export default class ServicesList extends Component {
   }
 
   actionSend(characteristic, hasResponse) {
-      let data = ["86", "8", "16", "-6", "-16", "-4", "11", "3", "9", "88"]
+
+      let data = Command.seal()
+      let data1 = Command.upload('FC0BFC0BFC')
+      let data2 = Command.frequency()
 
       if (hasResponse) {
           this.actionWrite(data, characteristic)
       } else {
           this.actionWriteWithoutResponse(data, characteristic)
       }
-      // prompt(
-      //     '请输入指令',
-      //     '请输入蓝牙指令',
-      //     [
-      //         {text: '取消', onPress: () => console.log('取消'), style: 'cancel'},
-      //         {text: '发送', onPress: (password) => {
-      //             console.log('确定' + password)
-      //             if (hasResponse) {
-      //                 this.actionWrite(password, characteristic)
-      //             } else {
-      //                 this.actionWriteWithoutResponse(password, characteristic)
-      //             }
-      //         }},
-      //     ],
-      //     {
-      //         cancelable: false,
-      //         defaultValue: 'WWW',
-      //         placeholder: '请输入蓝牙指令'
-      //     }
-      // );
+
+      if (hasResponse) {
+          this.actionWrite(data1, characteristic)
+      } else {
+          this.actionWriteWithoutResponse(data1, characteristic)
+      }
+
+      if (hasResponse) {
+          this.actionWrite(data2, characteristic)
+      } else {
+          this.actionWriteWithoutResponse(data2, characteristic)
+      }
   }
 
   // 写数据
@@ -267,17 +264,26 @@ export default class ServicesList extends Component {
             <TouchableOpacity onPress={() => {
                 this.setState({peripherals: new Map()});
                 BLEKit.ble_scan()
+
                 if (Platform.OS === 'android') {
                     BLEKit.ble_enableBluttooth().then((succ) => {
-                        // Alert.alert("ble enable")
+                        Alert.alert("ble enable")
                     }, (fail) => {
                         Alert.alert("blue not enable")
                     })
                 }
                 if (Platform.OS === 'ios') {
-                    // console.log("ios ble State => ", BLEKit.ble_State());
+                    BLEKit.ble_checkState()
+                    console.log("####### => ble_checkState");
+                    let res = BLEKit.ble_State((result) => {
+                        if (result.state === 'off') {
+                            Alert.alert("未开启")
+                        }
+                        if (result.state === 'on') {
+                            Alert.alert("已开启")
+                        }
+                    });
                 }
-
             }}>
               <View style={[styles.BtnStyle]}>
                 <Text>扫描</Text>

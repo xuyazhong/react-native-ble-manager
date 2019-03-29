@@ -1,81 +1,151 @@
-'use strict';
+import React, { Component } from 'react';
+import crcLib from 'react-native-crc'
 
-class BLECommand {
+// 命令字
+const APP_COMMAND = {
+    SEAL: 'FA',
+    UPLOAD: 'F1',
+    FREQUENCY: 'FC'
+};
+// 回复
+const APP_RESPONSE = {
+    SEAL: 'F0',
+    UPLOAD: 'A2',
+    FREQUENCY: 'BA'
+};
+// 版本
+const APP_VERSION = {
+    SEAL: '01',
+    UPLOAD: '01',
+    FREQUENCY: '01'
+};
+// 类型
+const APP_TYPE = {
+    SEAL: 'SEAL',
+    UPLOAD: 'UPLOAD',
+    FREQUENCY: 'FREQUENCY'
+};
+class Command extends React.Component {
 
     // 盖章
-    static ble_command_seal() {
-        let n1 = 8   // 0x08
-        let n2 = 16  // 0x10
-        let n3 = 250 // 0xFA
-        let n4 = 240 // 0xF0
+    seal() {
 
-        let n5 = 252 // 0xFC
-        let n6 = 11 // 0x0B
+        let version = this.getCommand(APP_VERSION.SEAL)
+        let seal_cmd = this.getCommand(APP_COMMAND.SEAL)
+        let seal_res = this.getCommand(APP_RESPONSE.SEAL)
+        let content = this.getContent(APP_TYPE.SEAL)
 
-        return getCommand([n1, n2, n3, n4, n5, n6])
+        return this.create_command(version, seal_cmd, seal_res, content)
     }
 
     // 上报数据
-    static ble_command_upload() {
-        // 0B
-        // 10
-        // F1
-        // A2
-        // FC0BFC0BFC
-        // 0AA6
+    upload(key) {
 
-        let n1 = 8   // 0x08
-        let n2 = 16  // 0x10
-        let n3 = 250 // 0xFA
-        let n4 = 240 // 0xF0
+        let version = this.getCommand(APP_VERSION.UPLOAD)
+        let cmd = this.getCommand(APP_COMMAND.UPLOAD)
+        let res = this.getCommand(APP_RESPONSE.UPLOAD)
+        let content = crcLib.strToHex(key)
 
-        let n5 = 252 // 0xFC
-        let n6 = 11 // 0x0B
+        return this.create_command(version, cmd, res, content)
 
-        return getCommand([n1, n2, n3, n4, n5, n6])
     }
 
     // 盖章次数
-    static ble_command_frequency() {
-        // 08
-        // 10
-        // FC
-        // BA
-        // FFFF
-        // FD56
+    frequency() {
 
+        let version = this.getCommand(APP_VERSION.UPLOAD)
+        let cmd = this.getCommand(APP_COMMAND.FREQUENCY)
+        let res = this.getCommand(APP_RESPONSE.FREQUENCY)
+        let content = this.getContent(APP_TYPE.FREQUENCY)
 
-        let n1 = 8   // 0x08
-        let n2 = 16  // 0x10
-        let n3 = 250 // 0xFA
-        let n4 = 240 // 0xF0
+        return this.create_command(version, cmd, res, content)
 
-        let n5 = 252 // 0xFC
-        let n6 = 11 // 0x0B
-
-        return getCommand([n1, n2, n3, n4, n5, n6])
     }
 
-    static getCommand(arr = []) {
-        let len = arr.length + 1;
-        let newArray = [len, ...arr];
+    create_command (version, cmd, res, content = []) {
+
+        let contentArr = [version, cmd, res, ...content]
+        let length = this.getLength(contentArr)
+        let sumArray = [length, ...contentArr]
+
+        let sum = this.calc(sumArray)
+
+        let crcArr = this.getCRC(sum)
+
+        let array = [...sumArray, ...crcArr]
+
+        return this.addHeadAndFoot(array)
+    }
+
+    getCommand(cmd = '') {
+        let result = parseInt(cmd, 16);
+        return result
+    }
+
+    // 计算和
+    calc(arr = []) {
         let sum = 0;
-        newArray.map((item) => {
+        arr.map((item) => {
             sum += item;
         });
         let hexStr = sum.toString(16);
         if (hexStr.length % 2 === 1) {
             hexStr = '0' + hexStr
         }
-        let a1 = crcLib.crc16(hexStr)
-        let a2 = crcLib.strToHex(a1);
+        return hexStr
     }
 
-    static addHeadAndFoot(arr = []) {
+    // 数据总长度
+    getLength(arr = []) {
+        let len = arr.length + 3;
+        return len
+    }
+
+    // 数据内容
+    getContent (res) {
+        let contentArr = []
+        switch (res) {
+            case APP_TYPE.SEAL:
+                console.log("APP_TYPE.SEAL")
+                contentArr = this.getRandom(2)
+                break;
+            case APP_TYPE.UPLOAD:
+                console.log("APP_TYPE.UPLOAD")
+                contentArr = this.getRandom(8)
+                break;
+            case APP_TYPE.FREQUENCY:
+                console.log("APP_TYPE.FREQUENCY")
+                contentArr = this.getRandom(2)
+                break;
+        }
+        return contentArr
+    }
+
+    // 生成Content
+    getRandom (count = 0) {
+        let array = []
+        for (var i=0; i<count; i++) {
+            let num = parseInt(255*Math.random())
+            array.push(i)
+        }
+        return array;
+    }
+
+    // 校验CRC
+    getCRC(str = '') {
+
+        let crc = crcLib.crc16(str)
+        let crcArr = crcLib.strToHex(crc);
+
+        return crcArr
+    }
+
+    // 帧头 帧尾
+    addHeadAndFoot(arr = []) {
         let head = 0x56
         let foot = 0x58
         return [head, ...arr, foot]
     }
 }
 
-module.exports = new BLECommand();
+module.exports = new Command();
