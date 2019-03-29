@@ -155,10 +155,10 @@ class BLEKit {
         return new Promise((success, fail) => {
             let propertieArray = this.getPropertieArray(selectedCharacteristic);
             if (propertieArray.includes('WriteWithoutResponse')) {
-                BleManager.writeWithoutResponse(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, dataValue).then((success) => {
+                BleManager.writeWithoutResponse(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, dataValue).then(() => {
                     success('写入成功')
-                }, (failure) => {
-                    fail('写入失败 =>' + failure)
+                }).catch((error) => {
+                    fail('写入失败')
                 })
             } else {
                 fail('无权限')
@@ -171,13 +171,13 @@ class BLEKit {
         console.log("dataValue =>", dataValue)
         console.log("selectedId =>", selectedId)
         console.log("selectedCharacteristic =>", selectedCharacteristic)
-        return new Promise((succ, fail) => {
+        return new Promise((success, fail) => {
             let propertieArray = this.getPropertieArray(selectedCharacteristic);
             if (propertieArray.includes('Write')) {
-                BleManager.write(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, dataValue).then((success) => {
-                    succ('写入成功')
-                }, (failure) => {
-                    fail('写入失败 =>' + failure)
+                BleManager.write(selectedId, selectedCharacteristic.service, selectedCharacteristic.characteristic, dataValue).then(() => {
+                    success('写入成功')
+                }).catch((error) => {
+                    fail('写入失败')
                 })
             } else {
                 fail('无权限')
