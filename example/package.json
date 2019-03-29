@@ -17,6 +17,7 @@
 		"react-native-crc": "https://github.com/xuyazhong/react-native-crc"
 	},
 	"devDependencies": {
-		"react-test-renderer": "16.0.0-alpha.12"
+		"react-test-renderer": "16.6.0-alpha.8af6728",
+		"schedule": "^0.4.0"
 	}
 }

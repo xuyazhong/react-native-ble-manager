@@ -245,12 +245,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
-	public void disconnect(String peripheralUUID, Callback callback) {
+	public void disconnect(String peripheralUUID, boolean force, Callback callback) {
 		Log.d(LOG_TAG, "Disconnect from: " + peripheralUUID);
 
 		Peripheral peripheral = peripherals.get(peripheralUUID);
 		if (peripheral != null) {
-			peripheral.disconnect();
+			peripheral.disconnect(force);
 			callback.invoke();
 		} else
 			callback.invoke("Peripheral not found");
@@ -430,9 +430,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				switch (state) {
 					case BluetoothAdapter.STATE_OFF:
 						stringState = "off";
+						clearPeripherals();
 						break;
 					case BluetoothAdapter.STATE_TURNING_OFF:
 						stringState = "turning_off";
+						disconnectPeripherals();
 						break;
 					case BluetoothAdapter.STATE_ON:
 						stringState = "on";
@@ -484,6 +486,26 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		}
 	};
 
+	private void clearPeripherals() {
+		if (!peripherals.isEmpty()) {
+			synchronized (peripherals) {
+				peripherals.clear();
+			}
+		}
+	}
+
+	private void disconnectPeripherals() {
+		if (!peripherals.isEmpty()) {
+			synchronized (peripherals) {
+				for (Peripheral peripheral : peripherals.values()) {
+					if (peripheral.isConnected()) {
+						peripheral.disconnect(false);
+					}
+				}
+			}
+		}
+	}
+
 	@ReactMethod
 	public void getDiscoveredPeripherals(Callback callback) {
 		Log.d(LOG_TAG, "Get discovered peripherals");
@@ -501,6 +523,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
 		Log.d(LOG_TAG, "Get connected peripherals");
 		WritableArray map = Arguments.createArray();
+
+	  if (getBluetoothAdapter() == null) {
+			Log.d(LOG_TAG, "No bluetooth support");
+			callback.invoke("No bluetooth support");
+			return;
+		}
 
 		List<BluetoothDevice> periperals = getBluetoothManager().getConnectedDevices(GATT);
 		for (BluetoothDevice entry : periperals) {
