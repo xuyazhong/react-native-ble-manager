@@ -95,7 +95,7 @@ class BLEKit {
     //开始扫描蓝牙设备
     ble_scan() {
         console.log('begin scan')
-        BleManager.scan([], 3, true).then((results) => {
+        BleManager.scan([], 10, true).then((results) => {
             console.log('Scanning...');
         });
     }
