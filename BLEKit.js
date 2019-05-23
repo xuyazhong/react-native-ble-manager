@@ -127,7 +127,7 @@ class BLEKit {
     // 监听Characteristic值变化
     // 订阅接收到的数据
     handleUpdateValueForCharacteristic(data) {
-        this.state.NotifyCallback(bytesToString(data.value));
+        this.state.NotifyCallback(data.value);
     }
 
     // 接收通知回调
