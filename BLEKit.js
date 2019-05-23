@@ -152,6 +152,9 @@ class BLEKit {
 
     // 写入蓝牙
     ble_writeWithoutResponse(dataValue, selectedId, selectedCharacteristic) {
+        console.log("dataValue =>", dataValue)
+        console.log("selectedId =>", selectedId)
+        console.log("selectedCharacteristic =>", selectedCharacteristic)
         return new Promise((success, fail) => {
             let propertieArray = this.getPropertieArray(selectedCharacteristic);
             if (propertieArray.includes('WriteWithoutResponse')) {

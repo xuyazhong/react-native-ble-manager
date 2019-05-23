@@ -36,5 +36,5 @@ repositories {
 
 
 dependencies {
-	compile 'com.facebook.react:react-native:[0.30.0,)'
+	implementation 'com.facebook.react:react-native:[0.30.0,)'
 }
